@@ -1,0 +1,46 @@
+scaling_policies:
+  -
+    policy_name: "{{policy_prefix}}-IncreaseGroupSize"
+    asg_name: "{{prefix}}{{asg_prefix}}-1"
+    adjustment_type: "ChangeInCapacity"
+    scaling_adjustment: +1
+    min_adjustment_step: 1
+    cooldown: 180
+    metric_alarm:       
+        alarm_name: "{{alarm_prefix}}-ScaleUp-1"
+        threshold: 50.0
+        comparison: ">="
+  -
+    policy_name: "{{policy_prefix}}-DecreaseGroupSize"
+    asg_name: "{{prefix}}{{asg_prefix}}-1"
+    adjustment_type: "ChangeInCapacity"
+    scaling_adjustment: -1
+    min_adjustment_step: 1
+    cooldown: 300
+    metric_alarm:
+        alarm_name: "{{alarm_prefix}}-ScaleDown-1"
+        threshold: 20.0
+        comparison: "<="
+
+  -
+    policy_name: "{{policy_prefix}}-IncreaseGroupSize"
+    asg_name: "{{prefix}}{{asg_prefix}}-2"
+    adjustment_type: "ChangeInCapacity"
+    scaling_adjustment: +1
+    min_adjustment_step: 1
+    cooldown: 180
+    metric_alarm:
+        alarm_name: "{{alarm_prefix}}-ScaleUp-2"
+        threshold: 50.0
+        comparison: ">="
+  -
+    policy_name: "{{policy_prefix}}-DecreaseGroupSize"
+    asg_name: "{{prefix}}{{asg_prefix}}-2"
+    adjustment_type: "ChangeInCapacity"
+    scaling_adjustment: -1
+    min_adjustment_step: 1
+    cooldown: 300
+    metric_alarm:
+        alarm_name: "{{alarm_prefix}}-ScaleDown-2"
+        threshold: 20.0
+        comparison: "<="

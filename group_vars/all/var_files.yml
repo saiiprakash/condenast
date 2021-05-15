@@ -1,0 +1,36 @@
+region_name: us-west-1
+clientname_prefix: condenast
+environment_prefix: dev
+vpc_prefix: vpc
+subnet_prefix: subnet
+routetable_prefix: routetable
+securitygroupname_prefix: sg
+loadbalancer_prefix: lb
+asg_prefix: asg
+lc_prefix: lc
+scaling_prefix: scaling
+policy_prefix: policy
+alarm_prefix: alarm
+webserver_prefix: webserver
+apiserver_prefix: apiserver
+database_prefix: db
+openvpn_prefix: openvpn
+healthcheck_prefix: healthcheck
+nfsserver_prefix: nfsserver
+jenkins_prefix: jenkins
+nat_prefix: nat
+testing_prefix: testing
+prefix: "{{clientname_prefix}}{{environment_prefix}}"
+securitygroup_prefix: "{{clientname_prefix}}{{environment_prefix}}{{securitygroupname_prefix}}"
+az1: us-west-1a
+az2: us-west-1c
+all_zones: 
+  -  "{{az1}}"
+  -  "{{az2}}"
+allowed_all_ip: 0.0.0.0/0
+sshkeypath: /home/ubuntu/AWSVPC/.ssh/
+sshkey: /home/ubuntu/AWSVPC/.ssh/awstest.key
+sshpublickey: /home/ubuntu/AWSVPC/.ssh/awstest.key.pub
+sshkeynameinaws: california
+aws_iam_instance_profile_name: ansiblerole
+WEB_SERVER_TAG_TEST: AxonCloud_web

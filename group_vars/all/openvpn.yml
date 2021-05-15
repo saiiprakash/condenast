@@ -1,0 +1,20 @@
+openvpn_instance_type: t2.micro
+openvpn_ami_image: ami-918e62d5
+openvpn_subnet_id: "{{prefix}}{{subnet_prefix}}-1"
+sec_openvpn_rules:
+  - proto: tcp
+    from_port: 22
+    to_port: 22
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: tcp
+    from_port: 443
+    to_port: 443
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: tcp
+    from_port: 943
+    to_port: 943
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: udp
+    from_port: 1194
+    to_port: 1194
+    cidr_ip: "{{ allowed_all_ip }}"

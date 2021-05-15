@@ -1,0 +1,9 @@
+#asg_min_size: 1
+#asg_max_size: 3
+#asg_desired_capacity: 1
+##launch config
+##lc_prefix: lc
+##auto scaling group
+##asg_prefix: asg
+#replace_all_instances_Yes: yes
+#replace_all_instances_No: no

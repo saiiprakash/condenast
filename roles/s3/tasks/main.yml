@@ -1,0 +1,51 @@
+---
+ - name: creating s3 buckets
+   local_action:
+     module: s3_bucket
+     name: "{{ item.bucket_name }}"
+#     policy: 
+     region: "{{ region_name }}"
+     requester_pays: "{{ item.requester_pays_flag }}"
+#     security_token: "{{ aws_security_token }}"
+     state: present
+     tags: { "environment":"{{ environment_prefix }}","Name":"{{ item.bucket_name }}" }     
+     versioning: "{{ item.versioning_flag }}"
+   register: s3
+   with_items: s3_buckets_list
+
+ - name: create policy config to tmp directory
+   template: src=policy-config.json.j2 dest=/tmp/{{ item.bucket_name }}.json
+   with_items: s3_buckets_list
+   when: item.bucket_policy is defined
+
+ - name: apply bucket policy
+   shell: aws s3api put-bucket-policy --bucket {{ item.bucket_name }} --policy file:///tmp/{{ item.bucket_name }}.json
+   with_items: s3_buckets_list
+   when: item.bucket_policy is defined
+
+ - name: create iam policy config to tmp directory
+   template: src=iam-policy-config.json.j2 dest=/tmp/{{ item.bucket_name }}{{ item.iam_resource_name }}{{ item.iam_type }}.json
+   with_items: s3_iam_list
+   when: item.iam_type is defined
+
+ - name: apply iam policy to iam roles for buckets
+   shell: aws iam put-role-policy --role-name {{ item.iam_resource_name }} --policy-name {{ item.policy_name }}  --policy-document file:///tmp/{{ item.bucket_name }}{{ item.iam_resource_name }}{{ item.iam_type }}.json
+   with_items: s3_iam_list
+   when: item.iam_type is defined and item.iam_type == "role"
+
+ - name: apply iam policy to iam user for buckets
+   shell: aws iam put-user-policy --user-name {{ item.iam_resource_name }} --policy-name {{ item.policy_name }}  --policy-document file:///tmp/{{ item.bucket_name }}{{ item.iam_resource_name }}{{ item.iam_type }}.json
+   with_items: s3_iam_list
+   when: item.iam_type is defined and item.iam_type == "user"
+
+ - name: apply iam policy to iam group for buckets
+   shell: aws iam put-group-policy --group-name {{ item.iam_resource_name }} --policy-name {{ item.policy_name }}  --policy-document file:///tmp/{{ item.bucket_name }}{{ item.iam_resource_name }}{{ item.iam_type }}.json
+   with_items: s3_iam_list
+   when: item.iam_type is defined and item.iam_type == "group"
+
+#aws iam put-user-policy --user-name Bob --policy-name ExamplePolicy --policy-document file://AdminPolicy.json
+
+# - name: apply bucket policy
+#   shell: aws s3api put-bucket-policy --bucket {{ item.bucket_name }} --policy file:///tmp/{{ item.bucket_name }}{{ item.iam_resource_name }}.json
+#   with_items: s3_iam_list
+#   when: item.bucket_policy is defined 

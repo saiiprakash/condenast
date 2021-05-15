@@ -1,0 +1,43 @@
+---
+ - name: clear the tmp file
+   shell: rm -rf listsubnetid.lst
+
+ - name: populate subnet ids from subnet tags
+   shell: automation-scripts/findSubnetid.sh "{{ testing_subnet_id }}" "{{ region_name }}"
+
+ - name: set the subnet ids in a variable
+   shell: echo "{{ item }}"
+   with_lines:
+   -  cat listsubnetid.lst
+   register: vpc_subnet_ids
+
+ - name: testing instance provisioning
+   local_action:
+     module: ec2
+     assign_public_ip: yes
+     region: "{{ region_name }}"
+     key_name: "{{ sshkeynameinaws }}"
+     instance_type: "{{ testing_instance_type}}"
+     image: "{{ testing_ami_image }}"
+     group: "{{ securitygroup_prefix }}_{{testing_prefix}}"
+     instance_tags:
+           Name: "{{ prefix }}_testing"
+           class: testing
+           environment: "{{ environment_prefix }}"
+     id: "{{vm_instance_id}}_testing"
+     vpc_subnet_id: "{{ item }}"
+#     user_data:  "{{ lookup('file','{{jenkins_user_data_file}}') }}"
+     wait: yes
+     security_token: "{{ aws_security_token }}"
+   register: ec2
+   with_lines:
+   - cat listsubnetid.lst
+# - name: associate new EIP for the instance
+#   local_action:
+#     module: ec2_eip
+#     region: "{{ region_name }}"
+#     device_id: "{{ item.id }}"
+#     security_token: "{{ aws_security_token }}"
+#     state: present
+#   with_items: ec2.instances
+#   when: item.id is defined

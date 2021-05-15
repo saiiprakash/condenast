@@ -1,0 +1,4 @@
+include_global_events: false
+cloudtrail_name: "{{ prefix }}-cloudtrail"
+s3_bucket_name_cloudtrail: "{{ prefix }}-cloudtrail" 
+s3_key_prefix: ""

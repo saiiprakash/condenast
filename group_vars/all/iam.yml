@@ -1,0 +1,90 @@
+iam_groups:
+ - 
+   group_name: "{{prefix}}-admin-group"
+   inline_policy_name: "{{prefix}}-AdministratorAccess"
+   inline_policy_document: iam-policy/admin_policy.json
+
+ - 
+   group_name:  "{{prefix}}-volume-group"
+
+ - 
+   group_name: "{{prefix}}-automation-dev-group"
+
+iam_users:
+ -
+   user_name: "{{prefix}}-admin-user"
+   password: ABCD@1234pqr
+   group_names:
+     - "{{prefix}}-admin-group"
+
+ -
+   user_name: "{{prefix}}-volume-backup-user"
+   password: ABCD@1234pqr
+   group_names:
+     - "{{prefix}}-volume-group"
+ #    - admin-group-script
+
+ -
+   user_name: "{{prefix}}-user1"
+   password: ABCD@1234pqr
+
+ -
+   user_name: "{{prefix}}-user2"
+   password: ABCD@1234pqr
+
+#Note: Ansible say a role can be added to group, however on testing it seems not working. 
+#Hence group name are not defined under iam_roles, infact we are bit crude way defining the manage policy for roles 
+iam_roles:
+ -
+   role_name: "{{prefix}}-automation-role"
+
+ - 
+   role_name: "{{prefix}}-nfs-role"
+
+ - 
+   role_name: "{{prefix}}-jenkins-role"
+#   group_names:
+#     - admin-group-script
+
+#Note: Please note manage policy is kept seprate due to Ansible and even aws cli also can add only one manage policy to IAM group at a time, hence we have to loop through  each group_name and manage policy. Hence even if it is cumbersome, we have to represent below mention way..
+manage_policy_groups:
+ - 
+   group_name: "{{prefix}}-admin-group"
+   manage_policy_name: AdministratorAccess
+
+ - 
+   group_name: "{{prefix}}-volume-group"
+   manage_policy_name: AmazonEC2FullAccess
+
+ -
+   group_name: "{{prefix}}-volume-group"
+   manage_policy_name: AmazonS3FullAccess
+
+ -
+   group_name: "{{prefix}}-automation-dev-group"
+   manage_policy_name: AmazonEC2FullAccess
+
+ -
+   group_name: "{{prefix}}-automation-dev-group"
+   manage_policy_name: PowerUserAccess
+   
+manage_policy_roles:
+ -
+   role_name: "{{prefix}}-automation-role"
+   manage_policy_name: AdministratorAccess
+
+ -
+   role_name: "{{prefix}}-automation-role"
+   manage_policy_name: AmazonEC2FullAccess
+
+ -
+   role_name: "{{prefix}}-nfs-role"
+   manage_policy_name: AmazonEC2FullAccess
+
+ -
+   role_name: "{{prefix}}-nfs-role"
+   manage_policy_name: AdministratorAccess
+ 
+ -
+   role_name: "{{prefix}}-jenkins-role"
+   manage_policy_name: AmazonEC2FullAccess

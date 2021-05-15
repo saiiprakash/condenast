@@ -1,0 +1,48 @@
+---
+ - name: create vpc
+   local_action:
+     module: ec2_vpc
+     cidr_block: "{{ vpc_cidr_block }}"
+     internet_gateway: yes
+     region: "{{ region_name }}"
+     resource_tags: { "environment":"{{ environment_prefix }}", "Name":"{{ vpc_name_tag }}" }
+#     security_token: "{{ aws_security_token }}"
+     wait: true
+   register: vpc
+
+ - name: set facts..
+   set_fact: vpc_id="{{ vpc.vpc_id }}"
+
+ - name: create subnets
+   local_action: 
+     module: ec2_vpc_subnet
+     az: "{{ item.az }}"
+     cidr: "{{ item.subnet_cidr }}"
+     region: "{{ region_name }}"
+   #  security_token: "{{ aws_security_token }}"
+     tags: { "Name":"{{ item.subnet_name }}", "environment":"{{ environment_prefix }}", "Tier":"{{ item.tier }}" }
+     vpc_id: "{{ vpc_id }}"
+   with_items: subnets
+
+ - name: create igw for internet gateway
+   local_action:
+     module: ec2_vpc_igw
+     region: "{{ region_name }}"
+  #   security_token: "{{ aws_security_token }}"
+     vpc_id: "{{ vpc_id }}"
+   register: igw
+
+ - name: create route table
+   local_action:
+     module: ec2_vpc_route_table
+     region: "{{ region_name }}"
+     routes:
+       - dest: 0.0.0.0/0
+         gateway_id: "{{ igw.gateway_id }}"
+     subnets:
+       - "{{ item.subnet_cidr }}"
+     tags: {  "Name":"{{ item.routetable_tag }}", "environment":"{{ environment_prefix }}" }
+     vpc_id: "{{ vpc_id }}"
+   with_items: subnets
+   when:
+     - item.public == True

@@ -1,0 +1,88 @@
+---
+ - name: create groups
+   local_action:
+     module: iam
+     iam_type: group
+     name: "{{ item.group_name }}"
+     state: present
+     region: "{{ region_name }}"
+   #  security_token: "{{ aws_security_token }}"
+   with_items: iam_groups
+   register: admin_group_result
+
+ - name: create iam inline policy for group
+   local_action:
+     module: iam_policy
+     iam_type: group
+     iam_name: "{{item.group_name}}"
+     policy_document: "{{item.inline_policy_document}}"
+     policy_name: "{{item.inline_policy_name}}"
+    # security_token: "{{ aws_security_token }}"
+     state: present
+     region: "{{ region_name }}"
+   with_items: iam_groups
+   when: item.inline_policy_document is defined and item.inline_policy_name is defined
+
+ - name: attach manage policy to groups
+   shell: aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/"{{item.manage_policy_name}}" --group-name "{{ item.group_name }}"
+   with_items: manage_policy_groups
+
+ - name: create iam users when groups is defined
+   local_action:
+     module: iam
+     access_key_state: create
+     groups: "{{ item.group_names }}"
+     iam_type: user
+     name: "{{ item.user_name }}"
+     password: "{{ item.password }}"
+     region: "{{ region_name }}"
+     # security_token: "{{ aws_security_token }}"
+     state: present
+   with_items: iam_users
+   register: user_info_result_group_defined
+   when: item.group_names is defined
+
+ - name: create iam users when groups is not defined
+   local_action:
+     module: iam
+     access_key_state: create
+     iam_type: user
+     name: "{{ item.user_name }}"
+     password: "{{ item.password }}"
+     region: "{{ region_name }}"
+     # security_token: "{{ aws_security_token }}"
+     state: present
+   with_items: iam_users
+   register: user_info_result_group_not_defined
+   when: item.group_names is not defined
+
+ - name: store the secret key for iam users when group is defined
+   shell: echo "{{ item.0.user_meta.access_keys }}" > usermgmt-output/"{{item.1.user_name}}.secret-key"
+   with_together:
+     - user_info_result_group_defined.results
+     - iam_users
+   when: item.1.group_names is defined
+
+ - name: store the secret key for iam users when group is not defined
+   shell: echo "{{ item.0.user_meta.access_keys }}" > usermgmt-output/"{{item.1.user_name}}.secret-key"
+   with_together:
+     - user_info_result_group_not_defined.results
+     - iam_users
+   when: item.1.group_names is not defined
+
+ - name: create iam roles
+   local_action:
+     module: iam
+#     groups: "{{ item.group_names }}"
+     iam_type: role
+     name: "{{ item.role_name }}"
+     region: "{{ region_name }}"
+    # security_token: "{{ aws_security_token }}"
+     state: present
+   with_items: iam_roles
+   register: user_info_result
+
+ - name: attach manage policy to roles
+   shell: aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/"{{item.manage_policy_name}}" --role-name "{{ item.role_name }}"
+   with_items: manage_policy_roles
+

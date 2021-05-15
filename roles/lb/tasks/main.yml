@@ -1,0 +1,30 @@
+---
+ - name: clear the tmp file
+   shell: rm -rf listsubnetid.lst
+
+ - name: populate subnet ids from subnet tags
+   shell: automation-scripts/findSubnetid.sh "{{ item.subnet_names }}" "{{ region_name }}"
+   with_items: loadbalancers
+
+ - name: set the subnet ids in a variable
+   shell: echo "{{ item }}"
+   with_lines:
+   -  cat listsubnetid.lst
+   register: vpc_subnet_ids
+
+ - name: create load balancer
+   local_action:
+     module: ec2_elb_lb
+     cross_az_load_balancing: "{{ item.0.cross_az_load_balancing }}"
+     health_check: "{{ item.0.lb_healthcheck }}"
+     listeners: "{{ item.0.lb_listeners }}"
+     name: "{{ item.0.lb_name }}"
+     region: "{{ region_name }}"
+     scheme: "{{ item.0.facing_scheme }}"
+     security_group_names: "{{ item.0.securitygroup_names }}"     
+#     security_token: "{{ aws_security_token }}"
+     state: present
+     subnets: "{{item.1.item }}" 
+   with_together:
+     - loadbalancers
+     - vpc_subnet_ids.results

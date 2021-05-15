@@ -1,0 +1,131 @@
+---------------------------
+Objective:
+---------------------------
+
+We want to standardized AWS cloud infrastructure creation, in the process reduce human errors, faster cloud infrastructure creation and lesser dependency AWS console.
+
+--------------------------
+Design decision & Issues
+--------------------------
+  Q. Why cloud infrastructure automation and why Ansible chosen:
+  
+  A.
+  + Whom AWS cloud infrastructure automation matters: Everybody as cloud infrastructure deployment knowledge of past and present deployment is captured, automated and standardized. 
+  
+  + What way Ansible fits in AWS cloud infrastructure automation --> There is a common pattern in any AWS cloud architecture e.g. VPC, subnets , load balancers, auto scaling group etc. 
+      We encapsulated this common pattern in Ansible roles by using Ansible AWS modules.
+	  
+  + When Ansible based automation give me ROI --> Cloud infrastructure creation time can be significantly reduced, hence better turnaround time for new cloud infrastructure creation.
+  
+  + Where is the flexibility in automation --> We parametrized arguments to different Ansible AWS modules invocation. The parametrized values are defined in
+       in various files in a separate folder, user is expected to change only these files as different cloud architecture are realized.
+	   
+  + Why choose Ansible for infrastructure automation --> Ansible is written in Python, which is relatively easier to code. Hence as architecture grows in complexity, custom code can
+       be written easily to extend complex functionality or use cases.
+  
+  + How much support Ansible has for AWS cloud infrastructure automation -->  Ansible is not replacement for AWS cli, hence it lacks many of the AWS cli api, 
+       however even with limited feature it is sufficient to cover many important AWS services, hence help to avoid manual work.
+	   
+	  
+  Q. Does Ansible has any limitation for AWS cloud automation?
+	
+  A. 
+  -  Ansible needs a container to host itself, and invoked by somebody. It can not be envisioned as active object or continuously running program. Hence if lot of complex logic required, 
+     there Ansible will not fit.
+  
+----------------------
+Prerequsite
+----------------------
+We used Ansible to automate AWS cloud infrastructure creation.
+However we observe Ansible always does a catchup with AWS cli, it has many feature lacking. 
+We have three choices whenever Ansible misses any feature for AWS cloud infrastructure automation:
+ a) Use AWS CLI
+ b) Write own custom Ansible module (if AWS python module called boto supports), implement the feature
+ c) Don't automate the feature which Ansible doesn't support
+ 
+In this phase as a workaround whenever Ansible doesn't support a feature, many times we have used AWS CLI, hence we need AWS CLI and Ansible to be installed, 
+before running the AWS cloud infrastructure automation script.
+
+---------------------------
+Prerequisite Installation
+---------------------------
+
+AWS CLI installation:
+	curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"	
+	unzip awscli-bundle.zip
+	./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+
+Ansible installation:
+	sudo wget http://releases.ansible.com/ansible/ansible-2.0.0-0.3.beta1.tar.gz
+    sudo tar xzf ansible-2.0.0-0.3.beta1.tar.gz
+    #do a cd into newly created directory and run below command
+    sudo python setup.py install
+	
+
+--------------------------
+AWS Credentials
+--------------------------
+
+Ansible has two ways to provide AWS credentials
+  a)
+    User in whose 'user context' the script will run, has to create a .boto file in its home directory.
+
+    The .boto file has to fill below information.
+
+    [Credentials]
+    aws_access_key_id = xxxxxxxxxxxxxxxx
+    aws_secret_access_key = yyyyyyyyyyyyyyyyy
+
+    Here 'user context' means
+    a)If script is run from command line on ubuntu machine as a ubuntu user. Then we have to create boto file in '/home/ubuntu/' folder.
+      Basically 'linux user' who will run ansible script, he has to put .boto file in its home directory.
+    or
+    b)Some web site(e.g. tomcat based web server) we try to invoke ansible script, so it will run in the context of web site (tomcat user), we have to create a .boto file in 'tomcat' user's home directory
+
+OR
+  b)
+    The EC2 instance from which we want to run the Ansible script, can be assigned a AWS IAM role.
+
+We are following option b), so the pre-requisite is to attach a IAM role to ec2 instance from which we run Ansible script, with admin permission, so that it can create all the AWS resource. 
+The role name has to be put in group_vars/all/var_files.yml. The field where role name is to be put is aws_iam_instance_profile_name.
+Another advantage of IAM role for ec2 instance is, we need not have to configure AWS cli.
+
+------------------------------
+Ansible Configuration fields
+-----------------------------
+
+All the parameters which are configurable can be found at group_vars/all/ folder.
+
+Please refer these file, and make sure all arguments satisfies your requirement, before running the ansible script.
+Some of the parameter which needs configuration is as mentioned below:
+
+region_name: us-west-1 #AWS Region name
+prefix: indecom    #Prefix is used for Tagging purpose
+sshkeynameinaws:  #ssh key name in AWS console
+
+Please don't forget to configure region_name, image_id and sshkeynameinaws etc.
+
+sshkeynameinaws we have to specify the ssh key, which has to be attached to a particular vm. Currently it is assumed user will create the ssh key before running the ansible script.
+Actually this ansible script can create the ssh key and upload to aws as well. However it is currently commented, if ssh key script need to create and upload to aws, that also can be achieved, by uncomment relevant code in roles/common/tasks/main.yml file.
+
+Note: By default it creates VM and VPC in US-West(North California) region.
+
+---------------------------------
+Command line Invocation
+---------------------------------
+Once var_files.yml is configured , we can run the ansible script as mentioned below.
+
+sudo ansible-playbook main.yml
+
+If script run successfully, we can log into AWS console, and verify that  VPC, Security group with rules, VM instances (e.g. NAT , web server and database) are created.
+
+Note: If AWS service shouldn't be automated, it can be commented in main.yml
+
+---------------------------------
+AWS cloud services automated
+---------------------------------
+These AWS Services have been automated:
+
+a) VPC b)Subnets c)Internet gateway d)Route table e) IAM user/group/role creation f) IAM policy management
+g)S3 bucket h) S3 IAM management i)AWS security group j)nfs server k)load balancer l)rds subnet creation
+m)rds n)launch config o)auto scaling group p)auto scaling metric q)openvpn r)nat s)cloudtrial t)jenkins

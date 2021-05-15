@@ -1,0 +1,17 @@
+sec_healthcheck_rules:
+  - proto: icmp
+    from_port: -1
+    to_port: -1
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: tcp
+    from_port: 22
+    to_port: 22
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: tcp
+    from_port: 8080
+    to_port: 8080
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: tcp
+    from_port: 80
+    to_port: 80
+    cidr_ip: "{{ allowed_all_ip }}"

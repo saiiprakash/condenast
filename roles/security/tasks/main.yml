@@ -1,0 +1,10 @@
+---
+ - name: creating security group rules..
+   local_action:
+     module: ec2_group
+     description: "{{ item.description }}"
+     name: "{{ item.securitygroup_name  }}"
+     region: "{{ region_name }}"
+     rules: "{{ item.rules  }}"
+     vpc_id: "{{ vpc_id  }}"
+   with_items: security_groups

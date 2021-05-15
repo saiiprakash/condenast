@@ -1,0 +1,27 @@
+db_instance_name: grasscrmdatabase
+db_name: grasscrm
+db_publicly_accessible: no
+db_multi_zone: no
+db_size: 5
+db_instance_type: db.t2.micro
+username: grasscrmuser
+password: passwordPL
+db_engine: MySQL
+engine_version: 5.7.26
+db_wait: yes
+db_wait_timeout: 1200
+rds_subnet_group: "{{ prefix }}-rds-mysql-subnet-group"
+upgrade: no
+rds_subnet_names: "{{prefix}}{{subnet_prefix}}-3^{{prefix}}{{subnet_prefix}}-4"
+rds_security_groups: "{{ securitygroup_prefix }}_{{database_prefix}}" 
+
+#security rule for database
+sec_database_rules:
+  - proto: tcp
+    from_port: 3306
+    to_port: 3306
+    group_name: "{{ securitygroup_prefix }}_{{webserver_prefix}}"
+  - proto: tcp
+    from_port: 3306
+    to_port: 3306
+    group_name: "{{ securitygroup_prefix }}_{{apiserver_prefix}}"  

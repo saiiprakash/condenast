@@ -1,0 +1,18 @@
+s3_buckets_list:
+ -
+    bucket_name: "{{ prefix }}-cloudtrail"
+    requester_pays_flag: no
+    bucket_policy: yes
+    versioning_flag: no
+ -
+    bucket_name: "{{ prefix }}-jenkinsjobs"
+    requester_pays_flag: no
+    versioning_flag: no
+    bucket_policy: yes
+
+s3_iam_list:
+ -
+   bucket_name: "{{ prefix }}-jenkinsjobs"
+   iam_resource_name: "{{prefix}}-automation-role"
+   iam_type: role
+   policy_name: jenkinpolicy

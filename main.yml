@@ -1,0 +1,20 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  roles:
+   - common
+   - iam
+   - vpc
+   - security
+   - s3
+   - nfsserver
+   - lb
+   - rds
+   - asg
+#   - vpn
+#   - healthcheck
+#   - nat
+   - cloudtrail
+   - jenkins
+#   - testing

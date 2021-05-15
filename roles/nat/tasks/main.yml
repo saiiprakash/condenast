@@ -1,0 +1,42 @@
+---
+ - name: clear the tmp file
+   shell: rm -rf listsubnetid.lst
+
+ - name: populate subnet ids from subnet tags
+   shell: automation-scripts/findSubnetid.sh "{{ nat_subnet_id }}" "{{ region_name }}"
+
+ - name: set the subnet ids in a variable
+   shell: echo "{{ item }}"
+   with_lines:
+   -  cat listsubnetid.lst
+   register: vpc_subnet_ids
+
+ - name: NAT instance provisioning
+   local_action:
+     module: ec2
+     assign_public_ip: yes
+     region: "{{ region_name }}"
+     key_name: "{{ sshkeynameinaws }}"
+     instance_type: "{{ nat_instance_type}}"
+     image: "{{ nat_ami_image }}"
+     wait: yes
+     group: "{{ securitygroup_prefix }}_{{nat_prefix}}"
+     instance_tags:
+           Name: "{{ prefix }}_nat"
+           class: nat
+           environment: "{{ environment_prefix }}"
+     id: "{{vm_instance_id}}_nat"
+     vpc_subnet_id: "{{ item }}"
+     source_dest_check: no
+     wait: yes
+   register: ec2
+   with_lines:
+   - cat listsubnetid.lst
+
+# - name: associate new EIP for the instance
+#   local_action:
+#     module: ec2_eip
+#     region: "{{ region_name }}"
+#     instance_id: "{{ item.id }}"
+ #  with_items: ec2.instances
+ #  when: item.id is defined

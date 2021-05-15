@@ -1,0 +1,47 @@
+#list of subnets.. In python below turns into list of dictonary..
+security_groups:
+  -
+    securitygroup_name: "{{ securitygroup_prefix }}_{{loadbalancer_prefix}}"
+    description: "load balancer security group"
+    rules: "{{sec_lb_rules}}"
+  - 
+    securitygroup_name: "{{ securitygroup_prefix }}_{{webserver_prefix}}"
+    description: "webserver security group"
+    rules: "{{ sec_webserver_rules }}"
+  
+  -
+    securitygroup_name: "{{ securitygroup_prefix }}_{{apiserver_prefix}}"
+    description: "apiserver security group"
+    rules: "{{ sec_apiserver_rules }}"   
+
+  -
+    securitygroup_name: "{{ securitygroup_prefix }}_{{database_prefix}}"
+    description: "database security group"
+    rules: "{{ sec_database_rules }}"
+  -
+    securitygroup_name: "{{ securitygroup_prefix }}_{{openvpn_prefix}}"
+    description: "openvpn security group"
+    rules: "{{ sec_openvpn_rules }}"
+  -
+    securitygroup_name: "{{ securitygroup_prefix }}_{{healthcheck_prefix}}"
+    description: "healthcheck security group"
+    rules: "{{ sec_healthcheck_rules }}"
+  -
+    securitygroup_name: "{{ securitygroup_prefix }}_{{nat_prefix}}"
+    description: "nat security group"
+    rules: "{{ sec_nat_rules }}"
+
+  -
+    securitygroup_name: "{{ securitygroup_prefix }}_{{nfsserver_prefix}}"
+    description: "nfsserver security group"
+    rules: "{{ sec_nfsserver_rules }}"
+
+  -
+    securitygroup_name: "{{ securitygroup_prefix }}_{{jenkins_prefix}}"
+    description: "jenkins security group"
+    rules: "{{ sec_jenkins_rules }}"
+
+  -
+    securitygroup_name: "{{ securitygroup_prefix }}_{{testing_prefix}}"
+    description: "testing security group"
+    rules: "{{ sec_testing_rules }}"

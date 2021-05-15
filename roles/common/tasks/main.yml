@@ -1,0 +1,29 @@
+---
+#- name: create a folder to store key
+#  shell: sudo rm -rf "{{sshkeypath}}" && sudo mkdir -p "{{sshkeypath}}"
+#- name: ssh key generation
+#  shell: sudo ssh-keygen -t rsa -N "" -f "{{sshkey}}" -q
+#- name: example ec2 key
+#  ec2_key:
+#    region: "{{ region_name }}"
+#    name: "{{ sshkeynameinaws }}"
+#    key_material: "{{ item }}"
+#  with_file: "{{ sshpublickey }}"
+
+- name: generate random number
+  shell: od -vAn -N2 -i /dev/urandom | tr -d ' '
+  register: randomid
+
+# AWS cli has 'Idempotency enforced'.
+# If we run these ansible scripts multiple times on the same day, on the same region VM instance creation will fail, due to 'Idempotency enforcement'
+# The fix for this is to prefix or suffix a  unique id to id filed while creating vm e.g. NAT vm/NFS vm/Jenkins vm etc.. 
+# So through this random number we can have unique id to each vm even if we run ansible script multiple times on a daily basic
+- name: set facts..
+  set_fact: vm_instance_id="{{randomid.stdout}}"
+
+- name: get  AWS security token
+  shell: curl http://169.254.169.254/latest/meta-data/iam/security-credentials/{{aws_iam_instance_profile_name}} | jq .Token
+  register: aws_sec_token
+
+- name: set AWS security token
+  set_fact: aws_security_token="{{aws_sec_token.stdout}}"

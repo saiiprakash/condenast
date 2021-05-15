@@ -1,0 +1,126 @@
+---
+ - name: clean tmp file
+   shell: rm -rf listsecgroupids.lst
+
+ - name: populate security group ids from security group tags 
+   shell: automation-scripts/findSecGroupids.sh "{{ item.secgroup_names }}" "{{ region_name }}"
+   with_items: launchconfigs
+
+ - name: set the security group ids in a variable
+   shell: echo "{{ item }}"
+   with_lines:
+   -  cat listsecgroupids.lst
+   register: lc_secgroup_ids
+
+ - name: create shell script which need be passed to user_data in tmp directory
+   template: src=webinstall.json.j2 dest=/tmp/{{ item.lc_name }}{{item.user_data_file}}
+   with_items: launchconfigs
+   when: item.user_data_file is defined
+
+ - name: create launch config when user data is defined
+   ec2_lc:
+     name: "{{ item.0.lc_name }}" 
+     image_id: "{{ item.0.image_id }}"
+     key_name: "{{item.0.key_name}}"
+     region: "{{ region_name }}"
+#     security_groups: "{{ lookup('aws_sg_id', 'us-west-1/{{ item.security_groups }}') }}"
+     security_groups: "{{item.1.item }}"
+     instance_type: "{{ item.0.instance_type }}"
+     instance_profile_name: "{{ item.0.instance_profile_name }}"
+     assign_public_ip: "{{ item.0.assign_public_ip  }}"
+     user_data:  "{{ lookup('file','/tmp/{{ item.0.lc_name }}{{item.0.user_data_file}}') }}"
+#     security_token: "{{ aws_security_token }}"
+   with_together:
+     - launchconfigs
+     - lc_secgroup_ids.results
+   when: item.0.user_data_file is defined
+ 
+ - name: create launch config when user_data is not defined
+   ec2_lc:
+     name: "{{ item.0.lc_name }}"
+     image_id: "{{ item.0.image_id }}"
+     key_name: "{{item.0.key_name}}"
+     region: "{{ region_name }}"
+     security_groups: "{{item.1.item }}"
+     instance_type: "{{ item.0.instance_type }}"
+     instance_profile_name: "{{ item.0.instance_profile_name }}"
+     assign_public_ip: "{{ item.0.assign_public_ip  }}"
+  #   security_token: "{{ aws_security_token }}"
+   with_together:
+     - launchconfigs
+     - lc_secgroup_ids.results
+   when: item.0.user_data_file is not defined
+
+ - name: clean tmp file
+   shell: rm -rf listsubnetid.lst
+
+ - name: populate subnet ids from subnet tags
+   shell: automation-scripts/findSubnetid.sh "{{ item.subnet_names }}" "{{ region_name }}"
+   with_items: autoscalinggroups
+
+ - name: set the subnet ids in a variable
+   shell: echo "{{ item }}"
+   with_lines:
+   -  cat listsubnetid.lst
+   register: vpc_subnet_ids
+
+ - name: create autoscale groups
+   ec2_asg:
+     name: "{{ item.0.asg_name }}" 
+     health_check_period: "{{ item.0.health_check_period }}"
+     load_balancers: "{{ item.0.lb_name }}"
+     health_check_type: "{{ item.0. health_check_type }}"
+     launch_config_name: "{{ item.0.launch_config_name }}"
+     min_size: "{{ item.0.min_size }}"
+     max_size: "{{ item.0.max_size }}"
+     desired_capacity: "{{ item.0.desired_capacity }}"
+     region: "{{ region_name }}"
+     replace_all_instances: "{{ item.0.replace_all_instances }}"
+     vpc_zone_identifier: "{{item.1.item }}"
+     tags:
+       - environment: "{{ environment_prefix }}"
+         Name: "{{ item.0.vm_name_tag }}"
+#     replace_batch_size: 2
+ #    security_token: "{{ aws_security_token }}"
+   register: asg_result
+   tags: autoscale_group
+   with_together:
+     - autoscalinggroups
+     - vpc_subnet_ids.results
+
+ - name: Configure Scaling Policies
+   ec2_scaling_policy:
+     region: "{{ region_name }}"
+     name: "{{ item.policy_name }}"
+     asg_name: "{{ item.asg_name }}" 
+     state: present
+     adjustment_type: "{{ item.adjustment_type }}"
+     min_adjustment_step: "{{ item.min_adjustment_step }}"
+     scaling_adjustment: "{{ item.scaling_adjustment }}"
+   #  security_token: "{{ aws_security_token }}" 
+#     cooldown: "{{ item.cooldown }}"
+   with_items: scaling_policies
+   register: sp_result
+
+ - name: Configure Metric Alarms and link to Scaling Policies
+   ec2_metric_alarm:
+     region: "{{ region_name }}"
+     name: "{{ item.0.metric_alarm.alarm_name }}"
+     state: present
+     metric: "CPUUtilization"
+     namespace: "AWS/EC2"
+     statistic: "Average"
+     comparison: "{{ item.0.metric_alarm.comparison }}"
+     threshold: "{{ item.0.metric_alarm.threshold }}"
+     period: 60
+     evaluation_periods: 1
+     unit: "Percent"
+    # security_token: "{{ aws_security_token }}"
+     dimensions:
+      AutoScalingGroupName: "{{ item.0.asg_name  }}"
+     alarm_actions: "{{ item.1.arn }}"
+   with_together:
+     - scaling_policies
+     - sp_result.results
+#   when: max_size > 1
+   register: ma_result

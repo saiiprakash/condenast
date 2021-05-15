@@ -1,0 +1,26 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "AWSCloudTrailAclCheck20150319",
+			"Effect": "Allow",
+			"Principal": {
+				"AWS": "*"
+			},
+			"Action": "s3:GetBucketAcl",
+			"Resource": "arn:aws:s3:::{{ item.bucket_name }}"
+		},
+		{
+			"Sid": "",
+			"Effect": "Allow",
+			"Principal": {
+				"AWS": "*"
+			},
+			"Action": [
+				"s3:GetObject",
+				"s3:PutObject"
+			],
+			"Resource": "arn:aws:s3:::{{ item.bucket_name }}/*"
+		}
+	]
+}

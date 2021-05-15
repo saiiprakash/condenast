@@ -1,0 +1,31 @@
+#list of subnets.. In python below turns into list of dictonary..
+subnets:
+  -
+    subnet_cidr: 10.0.1.0/24
+    az: us-west-1a
+    subnet_name: "{{prefix}}{{subnet_prefix}}-1"
+    tier: webserver
+    routetable_tag: "{{ prefix }}{{routetable_prefix}}-1"
+    public: True
+  -
+    subnet_cidr: 10.0.2.0/24
+    az: us-west-1c
+    subnet_name: "{{prefix}}{{subnet_prefix}}-2"
+    tier: webserver
+    routetable_tag: "{{ prefix }}{{routetable_prefix}}-2"
+    public: True
+
+  -
+    subnet_cidr: 10.0.3.0/24
+    az: us-west-1a
+    subnet_name: "{{prefix}}{{subnet_prefix}}-3"
+    tier: appserver
+    routetable_tag: "{{ prefix }}{{routetable_prefix}}-3"
+    public: True
+  -
+    subnet_cidr: 10.0.4.0/24
+    az: us-west-1c
+    subnet_name: "{{prefix}}{{subnet_prefix}}-4"
+    tier: appserver
+    routetable_tag: "{{ prefix }}{{routetable_prefix}}-4"
+    public: False

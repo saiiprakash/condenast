@@ -1,0 +1,13 @@
+---
+ - name: enable aws cloud trail
+   local_action:
+     module: cloudtrail
+     include_global_events: "{{ include_global_events }}"
+     name: "{{ cloudtrail_name }}"
+     region: "{{ region_name }}"
+#Note: Ansible documentation says s3_bucket_prefix however actual ansible code requiredi s3_bucket_name
+#     s3_bucket_prefix: "{{ 3_bucket_name_cloudtrail}}"
+     s3_bucket_name: "{{ s3_bucket_name_cloudtrail }}"
+     s3_key_prefix: "{{ s3_key_prefix }}"
+     security_token: "{{ aws_security_token }}"
+     state: enabled

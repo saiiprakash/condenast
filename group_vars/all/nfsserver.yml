@@ -1,0 +1,30 @@
+nfsserver_subnet_id: "{{prefix}}{{subnet_prefix}}-1"
+nfsserver_ami_image: ami-d1315fb1
+nfsserver_instance_type: t2.micro
+nfsserver_user_data_file: "automation-scripts/nfsserver-install.sh"
+nfs_role_name: "{{prefix}}-nfs-role"
+sec_nfsserver_rules:
+  - proto: icmp
+    from_port: -1
+    to_port: -1
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: tcp
+    from_port: 22
+    to_port: 22
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: tcp
+    from_port: 111
+    to_port: 111
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: tcp
+    from_port: 2049
+    to_port: 2049
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: udp
+    from_port: 2049
+    to_port: 2049
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: tcp
+    from_port: 0
+    to_port: 65535
+    cidr_ip: "{{ allowed_all_ip }}"

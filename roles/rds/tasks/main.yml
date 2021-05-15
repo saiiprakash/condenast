@@ -1,0 +1,48 @@
+---
+ - name: clear the tmp file
+   shell: rm -rf listsubnetid.lst
+
+ - name: populate subnet ids from subnet tags
+   shell: automation-scripts/findSubnetid.sh "{{ rds_subnet_names }}" "{{ region_name }}"
+
+ - name: rds_subnet_group
+   local_action:
+     module: rds_subnet_group
+     state: present
+     name: "{{ rds_subnet_group }}"
+     subnets: "{{ item }}"
+     region: "{{ region_name }}"
+     description: subnet group for rds instance
+#     security_token: "{{ aws_security_token }}"
+   with_lines:
+   - cat listsubnetid.lst
+
+ - name: clean tmp file
+   shell: rm -rf listsecgroupids.lst
+
+ - name: populate security group ids from security group tags
+   shell: automation-scripts/findSecGroupids.sh "{{ rds_security_groups }}" "{{ region_name }}"
+
+ - name: database instance provisioning
+   local_action:
+     module: rds
+     command: create
+     region: "{{ region_name }}"
+     instance_type: "{{ db_instance_type }}"
+     size: "{{ db_size }}"
+#     wait: yes
+     vpc_security_groups: "{{ item }}"
+     instance_name: "{{ db_instance_name }}"
+     multi_zone: "{{ db_multi_zone }}"
+     username: "{{ username }}"
+     password: "{{ password }}"
+     upgrade: "{{ upgrade }}"
+     db_engine: "{{ db_engine }}"
+     engine_version: "{{ engine_version }}"
+#     db_name: grasscrm
+#     engine_version:
+     publicly_accessible: "{{ db_publicly_accessible }}"
+     subnet: "{{ rds_subnet_group }}"
+ #    security_token: "{{ aws_security_token }}"
+   with_lines:
+   - cat listsecgroupids.lst

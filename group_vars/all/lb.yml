@@ -1,0 +1,41 @@
+lb_internet_facing_scheme: "internet-facing"
+lb_internal_facing_scheme: "internal"
+lb_cross_az_yes: "yes"
+lb_cross_az_no: "no"
+
+#load balancer listerner starts
+lb_listeners_tcp_80:
+  - protocol: tcp
+    load_balancer_port: 80
+    instance_port: 80
+#load balancer listener ends
+
+#load balancer healthcheck configuration
+lb_healthcheck_tcp_80:
+  ping_protocol: tcp
+  ping_port: 80
+  ping_path: "/"
+  response_timeout: 5
+  interval: 300
+  Timeout: 60
+  unhealthy_threshold: 2
+  healthy_threshold: 2
+
+lb_healthcheck_tcp_22:
+  ping_protocol: tcp
+  ping_port: 22
+  ping_path: "/"
+  response_timeout: 5
+  interval: 300
+  Timeout: 60
+  unhealthy_threshold: 2
+  healthy_threshold: 2
+#load balancer healthcheck configuration ends
+
+#Security rule starts
+sec_lb_rules:
+  - proto: tcp
+    from_port: 80
+    to_port: 80
+    cidr_ip: 0.0.0.0/0
+#security rule ends

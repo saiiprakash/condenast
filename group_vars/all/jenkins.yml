@@ -1,0 +1,29 @@
+jenkins_subnet_id: "{{prefix}}{{subnet_prefix}}-1"
+jenkins_ami_image: ami-d1315fb1  
+jenkins_instance_type: t2.micro
+jenkins_user_data_file: "automation-scripts/jenkins-install.sh"
+sec_jenkins_rules:
+  - proto: icmp
+    from_port: -1
+    to_port: -1
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: tcp
+    from_port: 22
+    to_port: 22
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: tcp
+    from_port: 8080
+    to_port: 8080
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: tcp
+    from_port: 80
+    to_port: 80
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: tcp
+    from_port: 443
+    to_port: 443
+    cidr_ip: "{{ allowed_all_ip }}"
+  - proto: tcp
+    from_port: 0
+    to_port: 65535
+    cidr_ip: "{{ allowed_all_ip }}"

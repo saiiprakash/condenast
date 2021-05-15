@@ -1,0 +1,19 @@
+launchconfigs:
+  -
+    lc_name: "{{prefix}}{{lc_prefix}}-1"
+    image_id: "{{ webserver_ami_image }}"
+    key_name: "{{sshkeynameinaws}}"
+    secgroup_names: "{{ securitygroup_prefix }}_{{webserver_prefix}}"
+    instance_profile_name: "{{prefix}}-automation-role"
+    instance_type: "{{ webserver_instance_type }}"
+    assign_public_ip: yes
+    user_data_file: "webinstall.sh"
+  -
+    lc_name: "{{prefix}}{{lc_prefix}}-2"
+    image_id: "{{ apiserver_ami_image }}"
+    key_name: "{{sshkeynameinaws}}"
+    secgroup_names: "{{ securitygroup_prefix }}_{{apiserver_prefix}}"
+    instance_profile_name: "{{prefix}}-automation-role"
+    instance_type: "{{ apiserver_instance_type }}"
+    assign_public_ip: yes
+    user_data_file: "webinstall.sh"
